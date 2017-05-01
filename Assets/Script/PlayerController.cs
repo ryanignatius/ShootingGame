@@ -5,6 +5,11 @@ public class PlayerController : NetworkBehaviour
 {
     public GameObject bulletPrefab;
     public Transform bulletSpawn;
+    public const float maxPosition = 10f;
+    public const float bulletLife = 2f;
+    public const float bulletSpeed = 10f;
+    public const float horizontalSpeed = 150f;
+    public const float verticalSpeed = 5f;
 
     void Update()
     {
@@ -13,11 +18,32 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        var x = Input.GetAxis("Horizontal") * Time.deltaTime * 150.0f;
-        var z = Input.GetAxis("Vertical") * Time.deltaTime * 3.0f;
+        var x = Input.GetAxis("Horizontal") * Time.deltaTime * horizontalSpeed;
+        var z = Input.GetAxis("Vertical") * Time.deltaTime * verticalSpeed;
 
         transform.Rotate(0, x, 0);
-        transform.Translate(0, 0, z);
+        if (z > 0)
+        {
+            transform.Translate(0, 0, z);
+            if (transform.position.x > maxPosition)
+            {
+                transform.position = new Vector3(maxPosition, transform.position.y, transform.position.z);
+            }
+            else if (transform.position.x < -maxPosition)
+            {
+                transform.position = new Vector3(-maxPosition, transform.position.y, transform.position.z);
+            }
+            if (transform.position.z > maxPosition)
+            {
+                transform.position = new Vector3(transform.position.x, transform.position.y, maxPosition);
+            }
+            else if (transform.position.z < -maxPosition)
+            {
+                transform.position = new Vector3(transform.position.x, transform.position.y, -maxPosition);
+            }
+        }
+        Camera.main.transform.position = transform.position;
+        Camera.main.transform.rotation = transform.rotation;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -37,17 +63,19 @@ public class PlayerController : NetworkBehaviour
             bulletSpawn.rotation);
 
         // Add velocity to the bullet
-        bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * 6;
+        bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * bulletSpeed;
 
         // Spawn the bullet on the Clients
         NetworkServer.Spawn(bullet);
 
-        // Destroy the bullet after 2 seconds
-        Destroy(bullet, 2.0f);
+        // Destroy the bullet after x seconds
+        Destroy(bullet, bulletLife);
     }
 
     public override void OnStartLocalPlayer()
     {
         GetComponent<MeshRenderer>().material.color = Color.blue;
+        transform.position = new Vector3(Random.Range(-maxPosition, maxPosition), 0, Random.Range(-maxPosition, maxPosition));
+        Camera.main.transform.position = transform.position;
     }
 }

@@ -38,8 +38,12 @@ public class Health : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            // move back to zero location
-            transform.position = Vector3.zero;
+            // move back to random location
+            transform.position = new Vector3(
+                Random.Range(-PlayerController.maxPosition, PlayerController.maxPosition),
+                0,
+                Random.Range(-PlayerController.maxPosition, PlayerController.maxPosition)
+            );
         }
     }
 }
